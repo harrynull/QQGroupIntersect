@@ -5,16 +5,21 @@ import sys
 from collections import OrderedDict
 URL="http://qun.qq.com/cgi-bin/qun_mgr/search_group_members"
 
-def get_group_members(group_id,cookies):
+def get_group_members(group_id, cookies):
     # generate the csrf token
     csrf_token = 5381
     for c in cookies["skey"]: csrf_token += (csrf_token << 5) + ord(c)
     
     # post request
     data={'gc':group_id,'st':0,'end':2000,'bkn':2147483647&csrf_token}
+    
     request_result=requests.post(URL,data=data,cookies=cookies).text
     members_json=json.loads(request_result)
-    count_group_members=members_json["search_count"]
+    try:
+        count_group_members=members_json["search_count"]
+    except:
+        print("Failed to get group members. Received json:", members_json)
+        return []
     result={}
     for mem in members_json["mems"]:
         result[mem["uin"]]=mem["nick"]
@@ -23,8 +28,8 @@ def get_group_members(group_id,cookies):
     assert(count_group_members==len(result))
     return result
 
-cookies={'uin':sys.argv[1], 'skey':sys.argv[2]}
-group_ids=sys.argv[3:]
+cookies={'uin':sys.argv[1], 'skey':sys.argv[2], 'p_skey':sys.argv[3]}
+group_ids=sys.argv[4:]
 members_results={}
 
 for group_id in group_ids:
