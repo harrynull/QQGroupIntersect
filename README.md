@@ -22,12 +22,16 @@ compare.py <Groups...>
 
 ## 例子
 你想知道你加的几个编程群(a,b)和你的几个同学群(c,d,e)之间有没有交集（想来也不会有吧）：
+```
     python3 fetch.py
     python3 merge.py prog a b
     python3 merge.py stu c d e
     python3 compare.py prog stu
+```
 然后你发现竟然真的有一个人A同时加了两个群，但是你发现你其实不认识A，你就可以：
+```
     python3 find.py A a b c d e
+```
 这样就可以找到A加了哪些群，以及ta用的昵称
 
 
