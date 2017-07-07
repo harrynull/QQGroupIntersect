@@ -3,6 +3,7 @@ import pickle
 import json
 import time
 import sys
+import os
 from collections import OrderedDict
 URL_GET_MEMBERS="http://qun.qq.com/cgi-bin/qun_mgr/search_group_members"
 URL_GET_GROUPS="http://qun.qq.com/cgi-bin/qun_mgr/get_group_list"
@@ -20,22 +21,29 @@ def qq_request(url, cookies, payload):
     
 def get_groups(cookies):
     result_list=[]
+    gid2name={}
     
     try:
         raw_result=qq_request(URL_GET_GROUPS,cookies,{})
         groups_json=json.loads(raw_result)
         
         if "create" in groups_json:
-            for group in groups_json["create"]: result_list.append(group["gc"])
+            for group in groups_json["create"]:
+                result_list.append(group["gc"])
+                gid2name[group["gc"]]=group["gn"].replace("&nbsp;"," ")
         if "manage" in groups_json:
-            for group in groups_json["manage"]: result_list.append(group["gc"])
+            for group in groups_json["manage"]:
+                result_list.append(group["gc"])
+                gid2name[group["gc"]]=group["gn"].replace("&nbsp;"," ")
         if "join" in groups_json:
-            for group in groups_json["join"]: result_list.append(group["gc"])
+            for group in groups_json["join"]:
+                result_list.append(group["gc"])
+                gid2name[group["gc"]]=group["gn"].replace("&nbsp;"," ")
     except:
         print("Failed to get groups. Received:", raw_result)
         return []
         
-    return result_list
+    return (result_list, gid2name)
     
 def get_group_members(group_id, cookies):
     
@@ -56,8 +64,13 @@ def get_group_members(group_id, cookies):
     return result
 
 cookies={'uin':sys.argv[1], 'skey':sys.argv[2], 'p_skey':sys.argv[3]}
-groups=get_groups(cookies)
+groups, id2name=get_groups(cookies)
 print("Groups: "+" ".join([str(g) for g in groups]))
+
+old_id2name=pickle.load(open("id.dat","rb")) if os.path.exists("id.dat") else {}
+for k in id2name.keys():
+    old_id2name[k]=id2name[k]
+pickle.dump(old_id2name, open("id.dat","wb"))
 
 for group_id in groups:
     print(group_id,end="\r")
